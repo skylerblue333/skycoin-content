@@ -1,22 +1,33 @@
-name: CI
+name: workload-router-ci
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - "product/**"
   pull_request:
-    branches: [main]
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type-check
+        run: npm run lint
+      - name: Tests
+        run: npm test
+      - name: Library build
+        run: npm run build
+      - name: Dependency audit
+        run: npm audit --audit-level=high
